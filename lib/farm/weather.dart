@@ -11,6 +11,14 @@ class WeatherPage extends StatefulWidget {
   State<WeatherPage> createState() => _WeatherPageState();
 }
 
+// Extension to capitalize the first letter of a string
+extension StringCasingExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
+  }
+}
+
 class _WeatherPageState extends State<WeatherPage> {
   final String apiKey = '62ac58651a0ac978b2e76ed5e3f81921';
   Map<String, dynamic>? _currentWeather;
@@ -164,11 +172,14 @@ class _WeatherPageState extends State<WeatherPage> {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Colors.green[800],
+                              color: Colors.lightBlue[800],
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.refresh, color: Colors.green[700]),
+                            icon: Icon(
+                              Icons.refresh,
+                              color: Colors.lightBlue[700],
+                            ),
                             onPressed: () => _getCurrentLocation(),
                           ),
                         ],
@@ -178,36 +189,49 @@ class _WeatherPageState extends State<WeatherPage> {
                     // Current Weather Card
                     if (_currentWeather != null)
                       Card(
-                        elevation: 2,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.lightBlue, width: 1),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20),
                           child: Column(
                             children: [
-                              Text(
-                                _currentWeather!['name'] ?? 'Current Location',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green[700],
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    color: Colors.lightBlue,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _currentWeather!['name'] ??
+                                        'Current Location',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 10),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   _weatherIcon(
                                     _currentWeather!['weather'][0]['icon'],
                                   ),
-                                  const SizedBox(width: 20),
+                                  const SizedBox(width: 15),
                                   Text(
                                     '${_currentWeather!['main']['temp']?.round()}°C',
                                     style: TextStyle(
                                       fontSize: 48,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.green[800],
+                                      color: Colors.lightBlue[800],
                                     ),
                                   ),
                                 ],
@@ -216,42 +240,63 @@ class _WeatherPageState extends State<WeatherPage> {
                               Text(
                                 _currentWeather!['weather'][0]['description']
                                     .toString()
-                                    .toUpperCase(),
-                                style: TextStyle(
+                                    .capitalize(),
+                                style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.green[700],
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
                               ),
+                              const Divider(
+                                height: 22,
+                                color: Colors.lightBlue,
+                              ),
                               const SizedBox(height: 20),
-                              GridView.count(
-                                shrinkWrap: true,
-                                crossAxisCount: 2,
-                                childAspectRatio: 3,
-                                physics: const NeverScrollableScrollPhysics(),
+                              Row(
                                 children: [
-                                  _weatherDetail(
-                                    Icons.water_drop,
-                                    '${_currentWeather!['main']['humidity']}%',
-                                    'Humidity',
-                                    Colors.green,
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        _weatherDetail(
+                                          Icons.water_drop,
+                                          '${_currentWeather!['main']['humidity']}%',
+                                          'Humidity',
+                                          Colors.lightBlue,
+                                        ),
+                                        _weatherDetail(
+                                          Icons.air,
+                                          '${_currentWeather!['wind']['speed']?.round()} km/h',
+                                          'Wind',
+                                          Colors.lightBlue,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  _weatherDetail(
-                                    Icons.air,
-                                    '${_currentWeather!['wind']['speed']?.round()} km/h',
-                                    'Wind',
-                                    Colors.green,
+                                  Container(
+                                    width: 1,
+                                    height: 60,
+                                    color: Colors.grey[300],
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
                                   ),
-                                  _weatherDetail(
-                                    Icons.compress,
-                                    '${_currentWeather!['main']['pressure']} hPa',
-                                    'Pressure',
-                                    Colors.green,
-                                  ),
-                                  _weatherDetail(
-                                    Icons.visibility,
-                                    '${_currentWeather!['visibility'] / 1000} km',
-                                    'Visibility',
-                                    Colors.green,
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        _weatherDetail(
+                                          Icons.compress,
+                                          '${_currentWeather!['main']['pressure']} hPa',
+                                          'Pressure',
+                                          Colors.lightBlue,
+                                        ),
+                                        _weatherDetail(
+                                          Icons.visibility,
+                                          '${_currentWeather!['visibility'] / 1000} km',
+                                          'Visibility',
+                                          Colors.lightBlue,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
@@ -267,7 +312,7 @@ class _WeatherPageState extends State<WeatherPage> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green[800],
+                        color: Colors.lightBlue[800],
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -285,9 +330,13 @@ class _WeatherPageState extends State<WeatherPage> {
                               width: 100,
                               margin: const EdgeInsets.only(right: 8),
                               child: Card(
-                                elevation: 1,
+                                elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: Colors.lightBlue,
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8),
@@ -298,7 +347,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                         _formatTime(forecast['dt']),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
-                                          color: Colors.green[800],
+                                          color: Colors.lightBlue[800],
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -306,11 +355,15 @@ class _WeatherPageState extends State<WeatherPage> {
                                         forecast['weather'][0]['icon'],
                                       ),
                                       const SizedBox(height: 4),
+                                      const Divider(
+                                        height: 10,
+                                        color: Colors.lightBlue,
+                                      ),
                                       Text(
                                         '${forecast['main']['temp']?.round()}°C',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.green[800],
+                                          color: Colors.lightBlue[800],
                                         ),
                                       ),
                                     ],
@@ -329,7 +382,7 @@ class _WeatherPageState extends State<WeatherPage> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green[800],
+                        color: Colors.lightBlue[800],
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -339,9 +392,13 @@ class _WeatherPageState extends State<WeatherPage> {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             child: Card(
-                              elevation: 1,
+                              elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(
+                                  color: Colors.lightBlue,
+                                  width: 1,
+                                ),
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -356,7 +413,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
-                                          color: Colors.green[800],
+                                          color: Colors.lightBlue[800],
                                         ),
                                       ),
                                     ),
@@ -367,7 +424,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.green[800],
+                                        color: Colors.lightBlue[800],
                                       ),
                                     ),
                                   ],

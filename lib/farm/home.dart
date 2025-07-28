@@ -129,10 +129,16 @@ class _GoatFarmLandingPageState extends State<GoatFarmLandingPage> {
                     icon: Icons.attach_money,
                     title: "Finance",
                     description: "Costs & profits",
-                    color: Colors.green[400]!,
+                    color: Colors.lightBlue[400]!,
                   ),
                 ];
-                return _buildCompactFeatureCard(features[index]);
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.lightBlue[100]!, width: 1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _buildCompactFeatureCard(features[index]),
+                );
               }, childCount: 4),
             ),
           ),
@@ -166,7 +172,7 @@ class _GoatFarmLandingPageState extends State<GoatFarmLandingPage> {
                   ),
                   const SizedBox(height: 12),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 15),
+                    padding: const EdgeInsets.only(bottom: 30),
                     child: _buildPillButton(
                       text: 'Start Free Trial',
                       onPressed: () => _navigateToSignup(context),

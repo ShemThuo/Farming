@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../farm/notify.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -47,8 +50,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
       for (final doc in usersQuery.docs) {
         final roles = (doc['roles'] as List?)?.cast<String>() ?? [];
-
-        // Count each role only once per user (avoid double-counting)
         final roleSet = roles.toSet();
 
         if (roleSet.contains('veterinary')) vets++;
@@ -69,17 +70,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
+      NotificationBar.show(
+        context: context,
+        message: 'Error loading user data: $e',
+        isError: true,
+      );
       debugPrint('Error details: $e');
     }
   }
 
   Widget _buildRoleCard(String title, int count, IconData icon, Color color) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.lightBlue, width: 1),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -117,14 +123,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'User Statistics',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.lightBlue,
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   GridView.count(
                     shrinkWrap: true,
@@ -173,17 +171,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _fetchUserData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _fetchUserData,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.lightBlue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child: const Text('Refresh'),
                     ),
-                    child: const Text('Refresh'),
                   ),
                 ],
               ),
