@@ -1,6 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../farm/notify.dart';
 
 class RegistrationFeePage extends StatefulWidget {
   const RegistrationFeePage({super.key});
@@ -61,26 +64,30 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
             .collection('registration_fees')
             .doc(_editingDoc!.id)
             .update(data);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✔ Record updated successfully')),
+        NotificationBar.show(
+          context: context,
+          message: '✔ Registration fee updated',
+          isError: false,
         );
       } else {
         // Create
         await FirebaseFirestore.instance
             .collection('registration_fees')
             .add(data);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✔ Registration fee recorded')),
+        NotificationBar.show(
+          context: context,
+          message: '✔ Registration fee added',
+          isError: false,
         );
       }
 
       _resetForm();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('❌ Error: $e')));
+      NotificationBar.show(
+        context: context,
+        message: 'Error: $e',
+        isError: true,
+      );
     } finally {
       setState(() => _isSubmitting = false);
     }
@@ -107,15 +114,81 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
     });
   }
 
-  Future<void> _deleteRecord(String id) async {
-    await FirebaseFirestore.instance
-        .collection('registration_fees')
-        .doc(id)
-        .delete();
+  Future<void> _deleteRecord(String id, String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Colors.lightBlue, width: 1),
+        ),
+        title: const Center(
+          child: Text(
+            'Confirm Delete',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1976D2),
+            ),
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "$name"?',
+          style: const TextStyle(color: Colors.black54, fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.lightBlue[700],
+              backgroundColor: Colors.lightBlue[50],
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.red[700],
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('🗑️ Record deleted')));
+    if (confirmed == true) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('registration_fees')
+            .doc(id)
+            .delete();
+        NotificationBar.show(
+          context: context,
+          message: '🗑️ Record deleted',
+          isError: false,
+        );
+      } catch (e) {
+        NotificationBar.show(
+          context: context,
+          message: 'Error deleting record: $e',
+          isError: true,
+        );
+      }
+    }
   }
 
   @override
@@ -130,7 +203,6 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('💰 Registration Fee')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -144,31 +216,43 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
                     decoration: const InputDecoration(
                       labelText: 'Member Name',
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
+                      prefixIcon: Icon(Icons.person, color: Colors.lightBlue),
                     ),
                     validator: (value) =>
                         value!.isEmpty ? 'Enter member name' : null,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   TextFormField(
                     controller: _amountPayableController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Amount Payable (KES)',
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.money),
+                      prefixIcon: Icon(
+                        Icons.monetization_on,
+                        color: Colors.lightBlue,
+                      ),
                     ),
                     validator: (value) =>
                         value!.isEmpty ? 'Enter amount payable' : null,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   TextFormField(
                     controller: _amountPaidController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Amount Paid (KES)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.payment),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: Colors.lightBlue,
+                          width: 1,
+                        ),
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.monetization_on,
+                        color: Colors.lightBlue,
+                      ),
                     ),
                     onChanged: (_) => setState(() {}),
                     validator: (value) =>
@@ -206,7 +290,7 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
                     icon: Icon(_editingDoc == null ? Icons.add : Icons.update),
                     label: Text(_editingDoc == null ? 'Submit' : 'Update'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.lightBlue,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -245,10 +329,10 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Colors.green,
+                color: Colors.lightBlue,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('registration_fees')
@@ -275,10 +359,17 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
                     return Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
+                        side: const BorderSide(
+                          color: Colors.lightBlue,
+                          width: 1,
+                        ),
                       ),
                       margin: const EdgeInsets.symmetric(vertical: 6),
                       child: ListTile(
-                        leading: const Icon(Icons.person, color: Colors.green),
+                        leading: const Icon(
+                          Icons.person,
+                          color: Colors.lightBlue,
+                        ),
                         title: Text(data['name']),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,21 +388,20 @@ class _RegistrationFeePageState extends State<RegistrationFeePage> {
                             ),
                           ],
                         ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.edit,
-                                color: Colors.orange,
-                              ),
-                              onPressed: () => _startEdit(docs[index]),
+                        trailing: TextButton(
+                          onPressed: () => _deleteRecord(docId, data['name']),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.red[700],
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteRecord(docId),
-                            ),
-                          ],
+                          ),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(fontSize: 10),
+                          ),
                         ),
                       ),
                     );
